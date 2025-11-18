@@ -291,8 +291,17 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ===================================
-// Form Handling with Animation
+// EmailJS Configuration & Form Handling
 // ===================================
+// Initialize EmailJS with your Public Key
+// Get your keys from: https://dashboard.emailjs.com/admin
+(function() {
+    // Replace with your EmailJS Public Key
+    emailjs.init({
+        publicKey: 'fbCqQ0fScUvJ5eunz', // e.g., 'user_abc123xyz'
+    });
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
     const contactForm = document.getElementById('contactForm');
     
@@ -302,6 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const btn = this.querySelector('.btn-primary');
             const originalText = btn.innerHTML;
+            const messageEl = document.getElementById('formMessage');
             
             // Show loading state
             btn.innerHTML = `
@@ -314,23 +324,46 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             btn.disabled = true;
             
-            // Simulate form submission (replace with actual API call)
-            setTimeout(() => {
-                btn.innerHTML = `
-                    <span style="display: inline-flex; align-items: center; gap: 0.5rem;">
-                        ✓ Message Sent!
-                    </span>
-                `;
-                
-                // Reset form
-                contactForm.reset();
-                
-                // Reset button after 3 seconds
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                }, 3000);
-            }, 2000);
+            if (messageEl) {
+                messageEl.textContent = '';
+            }
+            
+            // Send email using EmailJS
+            // Replace 'YOUR_SERVICE_ID' and 'YOUR_TEMPLATE_ID' with your actual IDs from EmailJS dashboard
+            emailjs.sendForm('service_ayckwrf', 'template_tc8bjvr', this)
+                .then((response) => {
+                    console.log('SUCCESS!', response.status, response.text);
+                    
+                    if (messageEl) {
+                        messageEl.style.color = '#10b981'; // green
+                        messageEl.textContent = '✓ Message sent successfully — thank you!';
+                    }
+                    
+                    btn.innerHTML = `
+                        <span style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                            ✓ Message Sent!
+                        </span>
+                    `;
+                    
+                    // Reset form
+                    contactForm.reset();
+                }, (error) => {
+                    console.error('FAILED...', error);
+                    
+                    if (messageEl) {
+                        messageEl.style.color = '#ef4444'; // red
+                        messageEl.textContent = '✕ Failed to send message. Please try again.';
+                    }
+                    
+                    btn.innerHTML = `<span style="color: #fff;">✕ Error Sending</span>`;
+                })
+                .finally(() => {
+                    // Reset button state after delay
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    }, 3000);
+                });
         });
         
         // Add spin animation for loading spinner
@@ -478,10 +511,3 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.head.appendChild(style);
 });
-
-// ===================================
-// Console Easter Egg
-// ===================================
-console.log('%c🚀 Aier Tech Portfolio', 'font-size: 20px; font-weight: bold; color: #6366f1;');
-console.log('%cLooking for talented developers? Get in touch!', 'font-size: 14px; color: #94a3b8;');
-console.log('%chello@aiertech.com', 'font-size: 14px; color: #ec4899; font-weight: bold;');
